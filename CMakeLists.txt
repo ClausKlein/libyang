@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.12)
+cmake_minimum_required(VERSION 3.21...3.26)
 
 # force out-of-source build
 if(NOT FORCE_INSRC_BUILD AND ${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
@@ -38,7 +38,7 @@ if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE debug)
 endif()
 
-set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_STANDARD 17)
 set(CMAKE_C_FLAGS         "${CMAKE_C_FLAGS} -Wall -Wextra")
 set(CMAKE_C_FLAGS_RELEASE "-O2 -DNDEBUG")
 set(CMAKE_C_FLAGS_PACKAGE "-g -O2 -DNDEBUG")
@@ -73,7 +73,7 @@ endif()
 if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
     set(COMPILER_UNUSED_ATTR "UNUSED_ ## x __attribute__((__unused__))")
     set(COMPILER_PACKED_ATTR "__attribute__((__packed__))")
-elseif(CMAKE_C_COMPILER_ID STREQUAL "Clang")
+elseif(CMAKE_C_COMPILER_ID MATCHES "Clang")
     # require at least clang 3.0
     if (CMAKE_C_COMPILER_VERSION VERSION_LESS 3.0)
         message(FATAL_ERROR "Clang version must be at least 3.0!")
@@ -266,6 +266,9 @@ set(headers
 check_symbol_exists(vdprintf "stdio.h;stdarg.h" HAVE_VDPRINTF)
 if(HAVE_VDPRINTF)
     add_definitions(-DHAVE_VDPRINTF)
+    if(APPLE)
+        add_definitions(-D_DARWIN_C_SOURCE)
+    endif()
 endif(HAVE_VDPRINTF)
 
 # create static libyang library
