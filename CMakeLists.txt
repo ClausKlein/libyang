@@ -1,15 +1,11 @@
-if(WIN32)
-    cmake_minimum_required(VERSION 3.22.0)
-else()
-    cmake_minimum_required(VERSION 2.8.12)
-endif()
+cmake_minimum_required(VERSION 3.22...3.26)
 
 # force out-of-source build
 if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
     message(FATAL_ERROR "In-source build is not allowed. Please make a standalone build directory and run CMake from there. You may need to remove CMakeCache.txt.")
 endif()
 
-project(libyang C)
+project(libyang VERSION 2.1.55 LANGUAGES C)
 
 # include custom Modules
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/CMakeModules/")
@@ -29,7 +25,7 @@ endif()
 # normalize build type string
 # see https://github.com/CESNET/libyang/pull/1692 for why CMAKE_C_FLAGS_<type> are not used directly
 string(TOUPPER "${CMAKE_BUILD_TYPE}" BUILD_TYPE_UPPER)
-if ("${BUILD_TYPE_UPPER}" STREQUAL "RELEASE")
+if("${BUILD_TYPE_UPPER}" STREQUAL "RELEASE")
     set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Build Type" FORCE)
     set(CMAKE_C_FLAGS "-DNDEBUG -O2 ${CMAKE_C_FLAGS}")
 elseif("${BUILD_TYPE_UPPER}" STREQUAL "DEBUG")
@@ -56,7 +52,7 @@ set(LIBYANG_DESCRIPTION "libyang is YANG data modelling language parser and tool
 set(CMAKE_MACOSX_RPATH TRUE)
 
 # keep all binaries in the build directory
-set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
 # set version of the project
 set(LIBYANG_MAJOR_VERSION 2)
@@ -70,13 +66,14 @@ set(LIBYANG_MICRO_SOVERSION 3)
 set(LIBYANG_SOVERSION_FULL ${LIBYANG_MAJOR_SOVERSION}.${LIBYANG_MINOR_SOVERSION}.${LIBYANG_MICRO_SOVERSION})
 set(LIBYANG_SOVERSION ${LIBYANG_MAJOR_SOVERSION})
 
+set(C_STANDARD 17)
+set(C_STANDARD_REQUIRED ON)
+
 if(WIN32)
-    set(C_STANDARD 11)
-    set(C_STANDARD_REQUIRED ON)
     set(CMAKE_C_FLAGS "/Zc:preprocessor /W3 /wd4711 /w14013 /utf-8 ${CMAKE_C_FLAGS}")
 else()
     # global C flags
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wpedantic -std=c11")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wpedantic")
 endif()
 
 include_directories(${PROJECT_BINARY_DIR}/src ${PROJECT_SOURCE_DIR}/src ${PROJECT_SOURCE_DIR}/src/plugins_exts)
@@ -224,10 +221,10 @@ set(format_sources
     src/*.h
     src/plugins_exts/*
     src/plugins_types/*)
+
 #
 # options
 #
-
 if(("${BUILD_TYPE_UPPER}" STREQUAL "DEBUG") OR ("${BUILD_TYPE_UPPER}" STREQUAL "RELWITHDEBINFO"))
     option(ENABLE_TESTS "Build tests" ON)
     option(ENABLE_VALGRIND_TESTS "Build tests with valgrind" ON)
@@ -312,7 +309,7 @@ if(ENABLE_COVERAGE)
     gen_coverage_enable(${ENABLE_TESTS})
 endif()
 
-if ("${BUILD_TYPE_UPPER}" STREQUAL "DEBUG")
+if("${BUILD_TYPE_UPPER}" STREQUAL "DEBUG")
     # enable before adding tests to let them detect that format checking is available - one of the tests is format checking
     source_format_enable(0.76)
 endif()
@@ -422,8 +419,8 @@ if(PKG_CONFIG_FOUND)
     # check that pkg-config includes the used path
     execute_process(COMMAND ${PKG_CONFIG_EXECUTABLE} --variable pc_path pkg-config RESULT_VARIABLE RETURN OUTPUT_VARIABLE PC_PATH ERROR_QUIET)
     if(RETURN EQUAL 0)
-    string(STRIP "${PC_PATH}" PC_PATH)
-    set(PC_PATH "${PC_PATH}:$ENV{PKG_CONFIG_PATH}")
+        string(STRIP "${PC_PATH}" PC_PATH)
+        set(PC_PATH "${PC_PATH}:$ENV{PKG_CONFIG_PATH}")
         string(REGEX MATCH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/pkgconfig" SUBSTR "${PC_PATH}")
         string(LENGTH "${SUBSTR}" SUBSTR_LEN)
         if(SUBSTR_LEN EQUAL 0)
@@ -441,7 +438,7 @@ endif()
 if(ENABLE_FUZZ_TARGETS)
     set(FUZZER "AFL" CACHE STRING "fuzzer type")
     if(FUZZER STREQUAL "LibFuzzer")
-        if (NOT CMAKE_C_COMPILER_ID STREQUAL "Clang")
+        if(NOT CMAKE_C_COMPILER_ID STREQUAL "Clang")
             message(FATAL_ERROR "LibFuzzer works only with clang")
         endif()
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=address,undefined -fno-omit-frame-pointer")
@@ -458,7 +455,7 @@ add_subdirectory(tools)
 gen_doc("${doxy_files}" ${LIBYANG_VERSION} ${LIBYANG_DESCRIPTION} ${project_logo})
 
 # generate API/ABI report
-if ("${BUILD_TYPE_UPPER}" STREQUAL "ABICHECK")
+if("${BUILD_TYPE_UPPER}" STREQUAL "ABICHECK")
     lib_abi_check(yang "${headers}" ${LIBYANG_SOVERSION_FULL} 003fa46e190930912e4d3f7b178c671c0662f671)
 endif()
 
@@ -471,7 +468,7 @@ add_custom_target(uninstall "${CMAKE_COMMAND}" -P "${CMAKE_MODULE_PATH}/uninstal
 
 # clean cmake cache
 add_custom_target(cclean
-        COMMAND make clean
-        COMMAND find . -iname '*cmake*' -not -name CMakeLists.txt -not -path './CMakeModules*' -exec rm -rf {} +
-        COMMAND rm -rf Makefile Doxyfile
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+   COMMAND make clean
+   COMMAND find . -iname '*cmake*' -not -name CMakeLists.txt -not -path './CMakeModules*' -exec rm -rf {} +
+   COMMAND rm -rf Makefile Doxyfile
+   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
