@@ -214,7 +214,8 @@ set(project_logo doc/logo.png)
 # source files to be covered by the 'format' target
 set(format_sources
     compat/*.c
-    compat/*.h
+    compat/*.h*
+    compat/posix-shims/*.h
     src/*.c
     src/*.h
     src/plugins_exts/*
@@ -316,7 +317,7 @@ endif()
 
 if("${BUILD_TYPE_UPPER}" STREQUAL "DEBUG")
     # enable before adding tests to let them detect that format checking is available - one of the tests is format checking
-    source_format_enable(0.69)
+    source_format_enable(0.76)
 endif()
 
 # generate files
