@@ -20,21 +20,12 @@ set(lintsrc
     common.c
 )
 if(YANGLINT_INTERACTIVE)
-    set(lintsrc ${lintsrc}
-        main.c
-        completion.c
-        configuration.c
-        linenoise/linenoise.c)
+    set(lintsrc ${lintsrc} main.c completion.c configuration.c linenoise/linenoise.c)
 else()
-    set(lintsrc ${lintsrc}
-        main_ni_only.c)
+    set(lintsrc ${lintsrc} main_ni_only.c)
 endif()
 
-set(format_sources
-    ${format_sources}
-    ${CMAKE_CURRENT_SOURCE_DIR}/*.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/*.h
-    PARENT_SCOPE)
+set(format_sources ${format_sources} ${CMAKE_CURRENT_SOURCE_DIR}/*.c ${CMAKE_CURRENT_SOURCE_DIR}/*.h PARENT_SCOPE)
 
 add_executable(yanglint ${lintsrc} ${compatsrc})
 target_link_libraries(yanglint yang)
@@ -74,8 +65,22 @@ if(ENABLE_TESTS)
     if(NOT PATH_SHUNIT)
         message(WARNING "'shunit2' not found! The yanglint(1) non-interactive tests will not be available.")
     else()
-        add_yanglint_test(NAME ni_list VIA bash SCRIPT shunit2/list.sh)
-        add_yanglint_test(NAME ni_feature VIA bash SCRIPT shunit2/feature.sh)
+        add_yanglint_test(
+            NAME
+            ni_list
+            VIA
+            bash
+            SCRIPT
+            shunit2/list.sh
+        )
+        add_yanglint_test(
+            NAME
+            ni_feature
+            VIA
+            bash
+            SCRIPT
+            shunit2/feature.sh
+        )
     endif()
 
     # tests of interactive mode using expect
@@ -83,8 +88,29 @@ if(ENABLE_TESTS)
     if(NOT PATH_EXPECT)
         message(WARNING "'expect' not found! The yanglint(1) interactive tests will not be available.")
     elseif(YANGLINT_INTERACTIVE)
-        add_yanglint_test(NAME in_list VIA expect SCRIPT expect/list.exp)
-        add_yanglint_test(NAME in_feature VIA expect SCRIPT expect/feature.exp)
-        add_yanglint_test(NAME in_completion VIA expect SCRIPT expect/completion.exp)
+        add_yanglint_test(
+            NAME
+            in_list
+            VIA
+            expect
+            SCRIPT
+            expect/list.exp
+        )
+        add_yanglint_test(
+            NAME
+            in_feature
+            VIA
+            expect
+            SCRIPT
+            expect/feature.exp
+        )
+        add_yanglint_test(
+            NAME
+            in_completion
+            VIA
+            expect
+            SCRIPT
+            expect/completion.exp
+        )
     endif()
 endif()

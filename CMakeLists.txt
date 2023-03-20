@@ -78,8 +78,6 @@ else()
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wpedantic")
 endif()
 
-include_directories(${PROJECT_BINARY_DIR}/src ${PROJECT_SOURCE_DIR}/src ${PROJECT_SOURCE_DIR}/src/plugins_exts)
-
 # type plugins are separate because they have their documentation generated
 set(type_plugins
     src/plugins_types/binary.c
@@ -353,6 +351,11 @@ else()
         set_target_properties(yangobj PROPERTIES COMPILE_FLAGS "-fvisibility=hidden")
     endif()
     target_compile_definitions(yangobj PRIVATE LIBYANG_BUILD)
+    target_include_directories(
+        yangobj
+        PUBLIC $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/src> $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src>
+               $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src/plugins_exts> $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+    )
     add_library(yang SHARED $<TARGET_OBJECTS:yangobj>)
 
     if(WIN32)
@@ -361,8 +364,13 @@ else()
     endif()
 
     #link dl
-    target_link_libraries(yang ${CMAKE_DL_LIBS})
+    target_link_libraries(yang PUBLIC ${CMAKE_DL_LIBS})
 endif()
+
+target_include_directories(
+    yang PUBLIC $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/src> $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src>
+                $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src/plugins_exts> $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+)
 
 if(WIN32)
     find_path(DIRENT_INCLUDE_DIR NAMES dirent.h REQUIRED)
@@ -371,37 +379,37 @@ if(WIN32)
     set(COMPAT_POSIX_INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/compat/posix-shims ${DIRENT_INCLUDE_DIR})
 
     if(TARGET yangobj)
-        target_include_directories(yangobj PRIVATE ${COMPAT_POSIX_INCLUDES})
+        target_include_directories(yangobj PRIVATE $<BUILD_INTERFACE:${COMPAT_POSIX_INCLUDES}>)
     endif()
-    target_include_directories(yang PRIVATE ${COMPAT_POSIX_INCLUDES})
-    include_directories(${COMPAT_POSIX_INCLUDES})
+    target_include_directories(yang PRIVATE $<BUILD_INTERFACE:${COMPAT_POSIX_INCLUDES}>)
+    #XXX include_directories(${COMPAT_POSIX_INCLUDES})
 
     find_package(pthreads REQUIRED)
     set(COMPAT_WIN_LIBRARIES PThreads4W::PThreads4W shlwapi.lib ws2_32)
-    target_link_libraries(yang ${COMPAT_WIN_LIBRARIES})
+    target_link_libraries(yang PUBLIC ${COMPAT_WIN_LIBRARIES})
 endif()
 
 set_target_properties(yang PROPERTIES VERSION ${LIBYANG_SOVERSION_FULL} SOVERSION ${LIBYANG_SOVERSION})
 
 if(NOT WIN32)
     # link math
-    target_link_libraries(yang m)
+    target_link_libraries(yang PUBLIC m)
 endif()
 
 # find pthreads
 set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
 find_package(Threads REQUIRED)
 if(ENABLE_STATIC)
-    target_link_libraries(yang -Wl,--whole-archive ${CMAKE_THREAD_LIBS_INIT} -Wl,--no-whole-archive)
+    target_link_libraries(yang PUBLIC -Wl,--whole-archive ${CMAKE_THREAD_LIBS_INIT} -Wl,--no-whole-archive)
 else()
-    target_link_libraries(yang ${CMAKE_THREAD_LIBS_INIT})
+    target_link_libraries(yang PUBLIC ${CMAKE_THREAD_LIBS_INIT})
 endif()
 
 # find PCRE2 library
 unset(PCRE2_LIBRARY CACHE)
 find_package(PCRE2 10.21 REQUIRED)
 include_directories(${PCRE2_INCLUDE_DIRS})
-target_link_libraries(yang ${PCRE2_LIBRARIES})
+target_link_libraries(yang PUBLIC ${PCRE2_LIBRARIES})
 
 # generated header list
 foreach(h IN LISTS gen_headers)
@@ -480,3 +488,20 @@ add_custom_target(
                                       rm -rf {} + COMMAND rm -rf Makefile Doxyfile
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 )
+
+include(CPM)
+cpmaddpackage("gh:TheLartians/PackageProject.cmake@1.10.0")
+packageProject(
+    NAME yang
+    VERSION ${PROJECT_VERSION}
+    NAMESPACE ${PROJECT_NAME}
+    BINARY_DIR ${PROJECT_BINARY_DIR}
+    INCLUDE_DIR ${PROJECT_BINARY_DIR}/src
+    INCLUDE_DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}
+    # VERSION_HEADER ${VERSION_HEADER_LOCATION}
+    DISABLE_VERSION_SUFFIX YES
+    COMPATIBILITY SameMajorVersion
+    DEPENDENCIES "pcre 10.21; Threads"
+)
+
+include(CPack)

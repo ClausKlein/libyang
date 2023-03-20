@@ -1,7 +1,9 @@
 # Correct RPATH usage on OS X
 set(CMAKE_MACOSX_RPATH TRUE)
 
-configure_file("${PROJECT_SOURCE_DIR}/tests/tests_config.h.in" "${PROJECT_BINARY_DIR}/tests/tests_config.h" ESCAPE_QUOTES @ONLY)
+configure_file(
+    "${PROJECT_SOURCE_DIR}/tests/tests_config.h.in" "${PROJECT_BINARY_DIR}/tests/tests_config.h" ESCAPE_QUOTES @ONLY
+)
 include_directories(SYSTEM ${CMOCKA_INCLUDE_DIR})
 include_directories(${PROJECT_BINARY_DIR}/tests/)
 
@@ -18,14 +20,14 @@ function(ly_add_utest)
 
     # Set common attributes of all tests
     set_target_properties(${TEST_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/tests")
-    target_link_libraries(${TEST_NAME} ${CMOCKA_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${PCRE2_LIBRARIES} ${CMAKE_DL_LIBS})
-    if (NOT WIN32)
+    target_link_libraries(${TEST_NAME} yang ${CMOCKA_LIBRARIES})
+    if(NOT WIN32)
         target_link_libraries(${TEST_NAME} m)
     else()
         target_link_libraries(${TEST_NAME} ${COMPAT_WIN_LIBRARIES})
     endif()
-    if (NOT APPLE)
-        if (ADDTEST_WRAP)
+    if(NOT APPLE)
+        if(ADDTEST_WRAP)
             set_target_properties(${TEST_NAME} PROPERTIES LINK_FLAGS "${ADDTEST_WRAP}")
         endif()
     endif()
@@ -34,7 +36,15 @@ function(ly_add_utest)
     set_property(TEST ${TEST_NAME} APPEND PROPERTY ENVIRONMENT "MALLOC_CHECK_=3")
 
     if(ENABLE_VALGRIND_TESTS)
-        add_test(${TEST_NAME}_valgrind valgrind --leak-check=full --show-leak-kinds=all --suppressions=${PROJECT_SOURCE_DIR}/tests/ld.supp --error-exitcode=1 ${CMAKE_BINARY_DIR}/tests/${TEST_NAME})
+        add_test(
+            ${TEST_NAME}_valgrind
+            valgrind
+            --leak-check=full
+            --show-leak-kinds=all
+            --suppressions=${PROJECT_SOURCE_DIR}/tests/ld.supp
+            --error-exitcode=1
+            ${CMAKE_BINARY_DIR}/tests/${TEST_NAME}
+        )
     endif()
 endfunction()
 

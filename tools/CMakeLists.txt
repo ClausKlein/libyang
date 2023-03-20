@@ -10,6 +10,4 @@ endif()
 add_subdirectory(lint)
 add_subdirectory(re)
 
-set(format_sources
-    ${format_sources}
-    PARENT_SCOPE)
+set(format_sources ${format_sources} PARENT_SCOPE)

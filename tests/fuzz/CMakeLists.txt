@@ -21,8 +21,13 @@ if(ENABLE_TESTS)
     foreach(target_name IN LISTS fuzz_regression_tests)
         file(COPY ${CMAKE_SOURCE_DIR}/tests/fuzz/corpus/${target_name} DESTINATION ${CMAKE_BINARY_DIR}/tests/fuzz/)
         add_executable(regress_fuzz_${target_name} ${target_name}.c main.c)
-        set_target_properties(regress_fuzz_${target_name} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/tests/fuzz/${target_name}")
+        set_target_properties(
+            regress_fuzz_${target_name} PROPERTIES RUNTIME_OUTPUT_DIRECTORY
+                                                   "${CMAKE_BINARY_DIR}/tests/fuzz/${target_name}"
+        )
         target_link_libraries(regress_fuzz_${target_name} yang)
-        add_test(NAME regress_fuzz_${target_name} COMMAND fuzz_regression_test regress_fuzz_${target_name} . WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/tests/fuzz/${target_name})
+        add_test(NAME regress_fuzz_${target_name} COMMAND fuzz_regression_test regress_fuzz_${target_name} .
+                 WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/tests/fuzz/${target_name}
+        )
     endforeach()
 endif()
