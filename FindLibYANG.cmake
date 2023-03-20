@@ -38,31 +38,28 @@ if(LIBYANG_LIBRARIES AND LIBYANG_INCLUDE_DIRS)
     # in cache already
     set(LIBYANG_FOUND TRUE)
 else()
-    find_path(LIBYANG_INCLUDE_DIR
-        NAMES
-        libyang/libyang.h
-        PATHS
-        /usr/include
-        /usr/local/include
-        /opt/local/include
-        /sw/include
-        ${CMAKE_INCLUDE_PATH}
-        ${CMAKE_INSTALL_PREFIX}/include
+    find_path(
+        LIBYANG_INCLUDE_DIR
+        NAMES libyang/libyang.h
+        PATHS /usr/include
+              /usr/local/include
+              /opt/local/include
+              /sw/include
+              ${CMAKE_INCLUDE_PATH}
+              ${CMAKE_INSTALL_PREFIX}/include
     )
 
-    find_library(LIBYANG_LIBRARY
-        NAMES
-        yang
-        libyang
-        PATHS
-        /usr/lib
-        /usr/lib64
-        /usr/local/lib
-        /usr/local/lib64
-        /opt/local/lib
-        /sw/lib
-        ${CMAKE_LIBRARY_PATH}
-        ${CMAKE_INSTALL_PREFIX}/lib
+    find_library(
+        LIBYANG_LIBRARY
+        NAMES yang libyang
+        PATHS /usr/lib
+              /usr/lib64
+              /usr/local/lib
+              /usr/local/lib64
+              /opt/local/lib
+              /sw/lib
+              ${CMAKE_LIBRARY_PATH}
+              ${CMAKE_INSTALL_PREFIX}/lib
     )
 
     if(LIBYANG_INCLUDE_DIR)
@@ -83,7 +80,7 @@ else()
 
     # handle the QUIETLY and REQUIRED arguments and set LIBYANG_FOUND to TRUE
     # if all listed variables are TRUE
-    find_package_handle_standard_args(LibYANG FOUND_VAR LIBYANG_FOUND
-        REQUIRED_VARS LIBYANG_LIBRARY LIBYANG_INCLUDE_DIR
-        VERSION_VAR LIBYANG_VERSION)
+    find_package_handle_standard_args(
+        LibYANG FOUND_VAR LIBYANG_FOUND REQUIRED_VARS LIBYANG_LIBRARY LIBYANG_INCLUDE_DIR VERSION_VAR LIBYANG_VERSION
+    )
 endif()
