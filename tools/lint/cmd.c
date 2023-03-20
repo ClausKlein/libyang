@@ -164,7 +164,6 @@ void
 cmd_quit(struct ly_ctx **UNUSED(ctx), const char *UNUSED(cmdline))
 {
     done = 1;
-    return;
 }
 
 void

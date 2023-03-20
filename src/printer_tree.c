@@ -4035,7 +4035,6 @@ trb_ext_print_instances(struct trt_wrapper wr, struct trt_parent_cache ca, struc
     }
 
 end:
-    return;
 }
 
 /**
@@ -4535,7 +4534,6 @@ trm_print_plugin_ext(struct trt_printer_ctx *pc, struct trt_tree_ctx *tc)
 
 end:
     *pc = pc_dupl;
-    return;
 }
 
 /**

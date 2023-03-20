@@ -11,9 +11,9 @@ macro(GEN_DOC INPUT_FILES PROJECT_VERSION PROJECT_DESCRIPTION DOC_LOGO)
         endif()
 
         # target doc
-        add_custom_target(doc
-                COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_BINARY_DIR}/Doxyfile
-                WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+        add_custom_target(
+            doc COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_BINARY_DIR}/Doxyfile WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        )
 
         # generate list with spaces as separators
         string(REPLACE ";" " " DOXY_INPUT "${INPUT_FILES}")
