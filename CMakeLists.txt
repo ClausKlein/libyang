@@ -502,7 +502,7 @@ packageProject(
     # VERSION_HEADER ${VERSION_HEADER_LOCATION}
     DISABLE_VERSION_SUFFIX YES
     COMPATIBILITY SameMajorVersion
-    DEPENDENCIES "pcre 10.21; Threads"
+    DEPENDENCIES "PCRE2 10.21; Threads"
 )
 
 include(CPack)
