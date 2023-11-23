@@ -1,8 +1,10 @@
-cmake_minimum_required(VERSION 3.22...3.26)
+cmake_minimum_required(VERSION 3.14...3.26)
 
 # force out-of-source build
 if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
-    message(FATAL_ERROR "In-source build is not allowed. Please make a standalone build directory and run CMake from there. You may need to remove CMakeCache.txt.")
+    message(FATAL_ERROR
+                "In-source build is not allowed. Please make a standalone build directory and run CMake from there. You may need to remove CMakeCache.txt."
+    )
 endif()
 
 project(libyang VERSION 2.1.55 LANGUAGES C)
@@ -76,8 +78,6 @@ else()
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wpedantic")
 endif()
 
-include_directories(${PROJECT_BINARY_DIR}/src ${PROJECT_SOURCE_DIR}/src ${PROJECT_SOURCE_DIR}/src/plugins_exts)
-
 # type plugins are separate because they have their documentation generated
 set(type_plugins
     src/plugins_types/binary.c
@@ -101,7 +101,8 @@ set(type_plugins
     src/plugins_types/ipv6_prefix.c
     src/plugins_types/date_and_time.c
     src/plugins_types/xpath1.0.c
-    src/plugins_types/node_instanceid.c)
+    src/plugins_types/node_instanceid.c
+)
 
 set(libsrc
     src/common.c
@@ -152,7 +153,8 @@ set(libsrc
     src/xml.c
     src/xpath.c
     src/validation.c
-    ${type_plugins})
+    ${type_plugins}
+)
 
 set(headers
     src/context.h
@@ -173,7 +175,8 @@ set(headers
     src/tree.h
     src/tree_data.h
     src/tree_edit.h
-    src/tree_schema.h)
+    src/tree_schema.h
+)
 
 set(internal_headers
     src/common.h
@@ -195,32 +198,27 @@ set(internal_headers
     src/tree_schema_internal.h
     src/validation.h
     src/xml.h
-    src/xpath.h)
+    src/xpath.h
+)
 
-set(gen_headers
-    src/version.h
-    src/config.h)
+set(gen_headers src/version.h src/config.h)
 
 # files to generate doxygen from
-set(doxy_files
-    doc/build.dox
-    doc/transition.dox
-    ${headers}
-    ${PROJECT_BINARY_DIR}/src/version.h
-    ${type_plugins})
+set(doxy_files doc/build.dox doc/transition.dox ${headers} ${PROJECT_BINARY_DIR}/src/version.h ${type_plugins})
 
 # project (doxygen) logo
-set(project_logo
-    doc/logo.png)
+set(project_logo doc/logo.png)
 
 # source files to be covered by the 'format' target
 set(format_sources
     compat/*.c
     compat/*.h*
+    compat/posix-shims/*.h
     src/*.c
     src/*.h
     src/plugins_exts/*
-    src/plugins_types/*)
+    src/plugins_types/*
+)
 
 #
 # options
@@ -236,7 +234,9 @@ option(ENABLE_PERF_TESTS "Build performance tests" OFF)
 option(ENABLE_COVERAGE "Build code coverage report from tests" OFF)
 option(ENABLE_FUZZ_TARGETS "Build target programs suitable for fuzzing with AFL" OFF)
 option(ENABLE_INTERNAL_DOCS "Generate doxygen documentation also from internal headers" OFF)
-set(YANG_MODULE_DIR "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/yang/modules/libyang" CACHE STRING "Directory where to copy the YANG modules to")
+set(YANG_MODULE_DIR "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/yang/modules/libyang"
+    CACHE STRING "Directory where to copy the YANG modules to"
+)
 
 if(ENABLE_INTERNAL_DOCS)
     set(doxy_files ${doxy_files} ${internal_headers})
@@ -245,11 +245,15 @@ else()
     set(INTERNAL_DOCS NO)
 endif()
 
-set(LYD_VALUE_SIZE "24" CACHE STRING "Maximum size in bytes of data node values that do not need to be allocated dynamically, minimum is 8")
+set(LYD_VALUE_SIZE "24"
+    CACHE STRING "Maximum size in bytes of data node values that do not need to be allocated dynamically, minimum is 8"
+)
 if(LYD_VALUE_SIZE LESS 8)
     message(FATAL_ERROR "Data node value size \"${LYD_VALUE_SIZE}\" is not valid.")
 endif()
-set(PLUGINS_DIR "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/libyang" CACHE STRING "Directory with libyang plugins (extensions and user types)")
+set(PLUGINS_DIR "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/libyang"
+    CACHE STRING "Directory with libyang plugins (extensions and user types)"
+)
 set(PLUGINS_DIR_EXTENSIONS "${PLUGINS_DIR}/extensions" CACHE STRING "Directory with libyang user extensions plugins")
 set(PLUGINS_DIR_TYPES "${PLUGINS_DIR}/types" CACHE STRING "Directory with libyang user types plugins")
 
@@ -262,8 +266,9 @@ option(ENABLE_STATIC "Build static (.a) library" OFF)
 #
 if(ENABLE_STATIC)
     message(STATUS "Disabling tests for static build")
-    set(ENABLE_TESTS OFF)
-    set(ENABLE_VALGRIND_TESTS OFF)
+    set(ENABLE_TESTS OFF CACHE STRING "forced" FORCE)
+    set(ENABLE_PERF_TESTS OFF CACHE STRING "forced" FORCE)
+    set(ENABLE_VALGRIND_TESTS OFF CACHE STRING "forced" FORCE)
 endif()
 
 if(ENABLE_VALGRIND_TESTS)
@@ -274,7 +279,7 @@ if(ENABLE_VALGRIND_TESTS)
         find_program(VALGRIND_FOUND valgrind)
         if(NOT VALGRIND_FOUND)
             message(WARNING "valgrind executable not found! Disabling memory leak tests.")
-            set(ENABLE_VALGRIND_TESTS OFF)
+            set(ENABLE_VALGRIND_TESTS OFF CACHE STRING "forced" FORCE)
         endif()
     endif()
 endif()
@@ -283,21 +288,21 @@ if(ENABLE_TESTS)
     find_package(CMocka 1.0.1)
     if(NOT CMOCKA_FOUND)
         message(STATUS "Disabling tests because of missing CMocka")
-        set(ENABLE_TESTS OFF)
+        set(ENABLE_TESTS OFF CACHE STRING "forced" FORCE)
     endif()
 endif()
 
 if(ENABLE_PERF_TESTS)
-    find_path(VALGRIND_INCLUDE_DIR
-        NAMES
-        valgrind/callgrind.h
-        PATHS
-        /usr/include
-        /usr/local/include
-        /opt/local/include
-        /sw/include
-        ${CMAKE_INCLUDE_PATH}
-        ${CMAKE_INSTALL_PREFIX}/include)
+    find_path(
+        VALGRIND_INCLUDE_DIR
+        NAMES valgrind/callgrind.h
+        PATHS /usr/include
+              /usr/local/include
+              /opt/local/include
+              /sw/include
+              ${CMAKE_INCLUDE_PATH}
+              ${CMAKE_INSTALL_PREFIX}/include
+    )
     if(VALGRIND_INCLUDE_DIR)
         set(HAVE_CALLGRIND 1)
     else()
@@ -337,7 +342,7 @@ if(ENABLE_STATIC)
     set(CMAKE_EXE_LINKER_FLAGS -static)
     set(CMAKE_FIND_LIBRARY_SUFFIXES .a)
     set(CMAKE_LINK_SEARCH_START_STATIC TRUE)
-    set(CMAKE_EXE_LINK_DYNAMIC_C_FLAGS)       # remove -Wl,-Bdynamic
+    set(CMAKE_EXE_LINK_DYNAMIC_C_FLAGS) # remove -Wl,-Bdynamic
     set(CMAKE_EXE_LINK_DYNAMIC_CXX_FLAGS)
     add_library(yang STATIC ${libsrc} ${compatsrc})
 else()
@@ -347,6 +352,11 @@ else()
         set_target_properties(yangobj PROPERTIES COMPILE_FLAGS "-fvisibility=hidden")
     endif()
     target_compile_definitions(yangobj PRIVATE LIBYANG_BUILD)
+    target_include_directories(
+        yangobj
+        PUBLIC $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/src> $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src>
+               $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src/plugins_exts> $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+    )
     add_library(yang SHARED $<TARGET_OBJECTS:yangobj>)
 
     if(WIN32)
@@ -355,49 +365,52 @@ else()
     endif()
 
     #link dl
-    target_link_libraries(yang ${CMAKE_DL_LIBS})
+    target_link_libraries(yang PUBLIC ${CMAKE_DL_LIBS})
 endif()
+
+target_include_directories(
+    yang PUBLIC $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/src> $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src>
+                $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src/plugins_exts> $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+)
 
 if(WIN32)
     find_path(DIRENT_INCLUDE_DIR NAMES dirent.h REQUIRED)
     message(STATUS "Found <dirent.h> at ${DIRENT_INCLUDE_DIR}")
 
-    set(COMPAT_POSIX_INCLUDES
-        ${CMAKE_CURRENT_SOURCE_DIR}/compat/posix-shims
-        ${DIRENT_INCLUDE_DIR})
+    set(COMPAT_POSIX_INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/compat/posix-shims ${DIRENT_INCLUDE_DIR})
 
     if(TARGET yangobj)
-        target_include_directories(yangobj PRIVATE ${COMPAT_POSIX_INCLUDES})
+        target_include_directories(yangobj PRIVATE $<BUILD_INTERFACE:${COMPAT_POSIX_INCLUDES}>)
     endif()
-    target_include_directories(yang PRIVATE ${COMPAT_POSIX_INCLUDES})
-    include_directories(${COMPAT_POSIX_INCLUDES})
+    target_include_directories(yang PRIVATE $<BUILD_INTERFACE:${COMPAT_POSIX_INCLUDES}>)
+    #XXX include_directories(${COMPAT_POSIX_INCLUDES})
 
     find_package(pthreads REQUIRED)
     set(COMPAT_WIN_LIBRARIES PThreads4W::PThreads4W shlwapi.lib ws2_32)
-    target_link_libraries(yang ${COMPAT_WIN_LIBRARIES})
+    target_link_libraries(yang PUBLIC ${COMPAT_WIN_LIBRARIES})
 endif()
 
 set_target_properties(yang PROPERTIES VERSION ${LIBYANG_SOVERSION_FULL} SOVERSION ${LIBYANG_SOVERSION})
 
 if(NOT WIN32)
     # link math
-    target_link_libraries(yang m)
+    target_link_libraries(yang PUBLIC m)
 endif()
 
 # find pthreads
 set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
 find_package(Threads REQUIRED)
 if(ENABLE_STATIC)
-    target_link_libraries(yang -Wl,--whole-archive ${CMAKE_THREAD_LIBS_INIT} -Wl,--no-whole-archive)
+    target_link_libraries(yang PUBLIC -Wl,--whole-archive ${CMAKE_THREAD_LIBS_INIT} -Wl,--no-whole-archive)
 else()
-    target_link_libraries(yang ${CMAKE_THREAD_LIBS_INIT})
+    target_link_libraries(yang PUBLIC ${CMAKE_THREAD_LIBS_INIT})
 endif()
 
 # find PCRE2 library
 unset(PCRE2_LIBRARY CACHE)
 find_package(PCRE2 10.21 REQUIRED)
 include_directories(${PCRE2_INCLUDE_DIRS})
-target_link_libraries(yang ${PCRE2_LIBRARIES})
+target_link_libraries(yang PUBLIC ${PCRE2_LIBRARIES})
 
 # generated header list
 foreach(h IN LISTS gen_headers)
@@ -417,14 +430,18 @@ if(PKG_CONFIG_FOUND)
     configure_file("libyang.pc.in" "libyang.pc" @ONLY)
     install(FILES "${CMAKE_CURRENT_BINARY_DIR}/libyang.pc" DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig")
     # check that pkg-config includes the used path
-    execute_process(COMMAND ${PKG_CONFIG_EXECUTABLE} --variable pc_path pkg-config RESULT_VARIABLE RETURN OUTPUT_VARIABLE PC_PATH ERROR_QUIET)
+    execute_process(
+        COMMAND ${PKG_CONFIG_EXECUTABLE} --variable pc_path pkg-config RESULT_VARIABLE RETURN OUTPUT_VARIABLE PC_PATH
+        ERROR_QUIET
+    )
     if(RETURN EQUAL 0)
         string(STRIP "${PC_PATH}" PC_PATH)
         set(PC_PATH "${PC_PATH}:$ENV{PKG_CONFIG_PATH}")
         string(REGEX MATCH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/pkgconfig" SUBSTR "${PC_PATH}")
         string(LENGTH "${SUBSTR}" SUBSTR_LEN)
         if(SUBSTR_LEN EQUAL 0)
-            message(WARNING "pkg-config will not detect the new package after installation, adjust PKG_CONFIG_PATH using \"export PKG_CONFIG_PATH=\${PKG_CONFIG_PATH}:${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/pkgconfig\".")
+            message(WARNING "pkg-config will not detect the new package after installation, adjust PKG_CONFIG_PATH using \"export PKG_CONFIG_PATH=\${PKG_CONFIG_PATH}:${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/pkgconfig\"."
+            )
         endif()
     endif()
 endif()
@@ -467,8 +484,25 @@ source_format(${format_sources})
 add_custom_target(uninstall "${CMAKE_COMMAND}" -P "${CMAKE_MODULE_PATH}/uninstall.cmake")
 
 # clean cmake cache
-add_custom_target(cclean
-   COMMAND make clean
-   COMMAND find . -iname '*cmake*' -not -name CMakeLists.txt -not -path './CMakeModules*' -exec rm -rf {} +
-   COMMAND rm -rf Makefile Doxyfile
-   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+add_custom_target(
+    cclean COMMAND make clean COMMAND find . -iname '*cmake*' -not -name CMakeLists.txt -not -path './CMakeModules*' -exec
+                                      rm -rf {} + COMMAND rm -rf Makefile Doxyfile
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+)
+
+include(CPM)
+cpmaddpackage("gh:TheLartians/PackageProject.cmake@1.10.0")
+packageProject(
+    NAME yang
+    VERSION ${PROJECT_VERSION}
+    NAMESPACE ${PROJECT_NAME}
+    BINARY_DIR ${PROJECT_BINARY_DIR}
+    INCLUDE_DIR ${PROJECT_BINARY_DIR}/src
+    INCLUDE_DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}
+    # VERSION_HEADER ${VERSION_HEADER_LOCATION}
+    DISABLE_VERSION_SUFFIX YES
+    COMPATIBILITY SameMajorVersion
+    DEPENDENCIES "PCRE2 10.21; Threads"
+)
+
+include(CPack)

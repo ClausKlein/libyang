@@ -1,0 +1,39 @@
+parse:
+  additional_commands:
+    packageproject:
+      pargs:
+        nargs: '*'
+        flags: []
+      spelling: packageProject
+      kwargs:
+        NAME: 1
+        VERSION: 1
+        NAMESPACE: 1
+        INCLUDE_DIR: 1
+        INCLUDE_DESTINATION: 1
+        INCLUDE_HEADER_PATTERN: 1
+        BINARY_DIR: 1
+        COMPATIBILITY: 1
+        VERSION_HEADER: 1
+        EXPORT_HEADER: 1
+        DISABLE_VERSION_SUFFIX: 1
+        DEPENDENCIES: +
+
+format:
+  dangle_parens: true
+  keyword_case: upper
+  line_ending: unix
+  line_width: 123
+  max_lines_hwrap: 5
+  max_pargs_hwrap: 5
+  max_rows_cmdline: 5
+  max_subgroups_hwrap: 5
+  min_prefix_chars: 8
+  separate_ctrl_name_with_space: false
+  separate_fn_name_with_space: false
+  tab_size: 4
+
+markup:
+  bullet_char: '*'
+  enum_char: .
+  enable_markup: false

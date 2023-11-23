@@ -11,10 +11,8 @@ foreach(file ${files})
     if(EXISTS ${file} OR IS_SYMLINK ${file})
         message(STATUS "Removing: ${file}")
 
-        execute_process(COMMAND rm -f ${file}
-            RESULT_VARIABLE result
-            OUTPUT_QUIET
-            ERROR_VARIABLE stderr
+        execute_process(
+            COMMAND rm -f ${file} RESULT_VARIABLE result OUTPUT_QUIET ERROR_VARIABLE stderr
             ERROR_STRIP_TRAILING_WHITESPACE
         )
 

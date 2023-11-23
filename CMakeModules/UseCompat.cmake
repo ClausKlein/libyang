@@ -44,7 +44,7 @@ macro(USE_COMPAT)
 
     check_function_exists(pthread_mutex_timedlock HAVE_PTHREAD_MUTEX_TIMEDLOCK)
 
-    TEST_BIG_ENDIAN(IS_BIG_ENDIAN)
+    test_big_endian(IS_BIG_ENDIAN)
 
     check_include_file("stdatomic.h" HAVE_STDATOMIC)
 
